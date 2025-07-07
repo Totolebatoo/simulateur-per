@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulateur PER</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-5xl mx-auto p-6">
+    <header class="mb-8">
+      <h1 class="text-3xl font-bold mb-2">Simulateur PER – Résultats</h1>
+      <p class="text-gray-600">Visualisez l'évolution de votre épargne retraite selon vos hypothèses.</p>
+    </header>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-semibold mb-4">Projection sur 20 ans</h2>
+      <canvas id="projectionChart" height="100"></canvas>
+    </section>
+
+    <section class="mb-10">
+      <h2 class="text-xl font-semibold mb-4">Paramètres de simulation</h2>
+      <table class="table-auto w-full bg-white shadow rounded">
+        <thead class="bg-gray-200">
+          <tr>
+            <th class="px-4 py-2 text-left">Paramètre</th>
+            <th class="px-4 py-2 text-left">Valeur</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="border-t">
+            <td class="px-4 py-2">Âge actuel</td><td class="px-4 py-2">35 ans</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2">Versement mensuel</td><td class="px-4 py-2">200 €</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2">Durée</td><td class="px-4 py-2">20 ans</td>
+          </tr>
+          <tr>
+            <td class="px-4 py-2">Taux rendement annuel</td><td class="px-4 py-2">5 %</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="mb-10">
+      <button id="downloadBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Télécharger les données (CSV)
+      </button>
+    </section>
+  </div>
+
+  <script>
+    // 💰 Simulation et graphique
+    const monthly = 200;
+    const years = 20;
+    const rate = 0.05;
+    const months = years * 12;
+    const data = [];
+    let balance = 0;
+
+    for (let i = 0; i <= months; i++) {
+      data.push((balance).toFixed(2));
+      balance = (balance + monthly) * (1 + rate / 12);
+    }
+
+    const ctx = document.getElementById('projectionChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: Array.from({length: months + 1}, (_,i) => i),
+        datasets: [{
+          label: 'Capital épargne (€)',
+          data,
+          borderColor: '#3B82F6',
+          fill: false
+        }]
+      },
+      options: {
+        scales: { x: { title: { display: true, text: 'Mois' }}, y: { title: { display: true, text: '€' }}}
+      }
+    });
+
+    // 📥 Télécharger en CSV
+    document.getElementById('downloadBtn').addEventListener('click', () => {
+      let csv = 'Mois,Capital (€)\\n';
+      data.forEach((val, i) => csv += i + ',' + val + '\\n');
+      const blob = new Blob([csv], {type: 'text/csv'});
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'simulateur_PER.csv';
+      link.click();
+    });
+  </script>
+</body>
+</html>
