@@ -1,135 +1,158 @@
-  import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Line } from "react-chartjs-2";
-import { motion } from "framer-motion";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulateur PER Visuel</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom, #eff6ff, #ffffff);
+      margin: 0;
+      padding: 2rem;
+      color: #1e3a8a;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+    p {
+      text-align: center;
+      font-size: 1.2rem;
+      margin-bottom: 2rem;
+      color: #475569;
+    }
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin: 2rem auto;
+      max-width: 800px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      padding: 1rem;
+      text-align: center;
+    }
+    .card-title {
+      font-size: 1rem;
+      color: #2563eb;
+    }
+    .card-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 0.25rem;
+    }
+    .chart-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 1rem;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    .button-wrapper {
+      text-align: center;
+      margin-top: 2rem;
+    }
+    .btn {
+      background-color: #3b82f6;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 9999px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59,130,246,0.4);
+    }
+    .btn:hover {
+      background-color: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simulateur PER Visuel</h1>
+  <p>Épargne mensuelle de 200€, rendement 5%, sur 20 ans</p>
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
+  <div class="card-grid">
+    <div class="card">
+      <div class="card-title">Âge</div>
+      <div class="card-value">35 ans</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Versement</div>
+      <div class="card-value">200€ / mois</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Durée</div>
+      <div class="card-value">20 ans</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Rendement</div>
+      <div class="card-value">5%</div>
+    </div>
+  </div>
 
-const months = 240;
-const monthly = 200;
-const rate = 0.05;
+  <div class="chart-container">
+    <canvas id="chart" height="100"></canvas>
+  </div>
 
-let dataPoints: number[] = [];
-let labels: string[] = [];
-let balance = 0;
-for (let i = 0; i <= months; i++) {
-  balance = (balance + monthly) * (1 + rate / 12);
-  dataPoints.push(parseFloat(balance.toFixed(2)));
-  labels.push(i % 12 === 0 ? `${i / 12} ans` : "");
-}
+  <div class="button-wrapper">
+    <button class="btn" onclick="downloadCSV()">📥 Télécharger la projection</button>
+  </div>
 
-const data = {
-  labels,
-  datasets: [
-    {
-      label: "Capital projeté (€)",
-      data: dataPoints,
-      fill: true,
-      borderColor: "#3B82F6",
-      backgroundColor: "rgba(59, 130, 246, 0.2)",
-      tension: 0.4,
-    },
-  ],
-};
+  <script>
+    const months = 240;
+    const monthly = 200;
+    const rate = 0.05;
+    let balance = 0;
+    const dataPoints = [];
+    const labels = [];
 
-const options = {
-  responsive: true,
-  plugins: {
-    legend: { position: "top" as const },
-    title: {
-      display: true,
-      text: "Projection de votre PER sur 20 ans",
-    },
-  },
-};
+    for (let i = 0; i <= months; i++) {
+      balance = (balance + monthly) * (1 + rate / 12);
+      dataPoints.push(parseFloat(balance.toFixed(2)));
+      labels.push(i % 12 === 0 ? (i / 12) + ' ans' : '');
+    }
 
-export default function SimulateurPER() {
-  return (
-    <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white p-6">
-      <motion.h1
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="text-4xl font-bold text-center mb-4"
-      >
-        Simulateur PER Visuel
-      </motion.h1>
+    const ctx = document.getElementById('chart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'Capital projeté (€)',
+          data: dataPoints,
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59,130,246,0.2)',
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'top' },
+          title: {
+            display: true,
+            text: 'Projection de votre PER sur 20 ans'
+          }
+        }
+      }
+    });
 
-      <motion.p
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
-        className="text-center text-gray-600 mb-10"
-      >
-        Épargne mensuelle de 200€, rendement 5%, sur 20 ans
-      </motion.p>
-
-      <div className="max-w-4xl mx-auto">
-        <Card className="mb-6 shadow-xl">
-          <CardContent className="p-6">
-            <Line options={options} data={data} />
-          </CardContent>
-        </Card>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center"
-        >
-          <Card className="p-4">
-            <div className="text-lg font-medium text-blue-600">Âge</div>
-            <div className="text-2xl font-bold">35 ans</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-lg font-medium text-blue-600">Versement</div>
-            <div className="text-2xl font-bold">200€ / mois</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-lg font-medium text-blue-600">Durée</div>
-            <div className="text-2xl font-bold">20 ans</div>
-          </Card>
-          <Card className="p-4">
-            <div className="text-lg font-medium text-blue-600">Rendement</div>
-            <div className="text-2xl font-bold">5%</div>
-          </Card>
-        </motion.div>
-
-        <div className="text-center mt-10">
-          <Button
-            onClick={() => {
-              const csv = ["Mois,Capital (€)", ...dataPoints.map((val, i) => `${i},${val}`)].join("\n");
-              const blob = new Blob([csv], { type: "text/csv" });
-              const link = document.createElement("a");
-              link.href = URL.createObjectURL(blob);
-              link.download = "projection_PER.csv";
-              link.click();
-            }}
-            className="bg-blue-600 text-white hover:bg-blue-700 px-6 py-3 rounded-full shadow"
-          >
-            Télécharger la projection (CSV)
-          </Button>
-        </div>
-      </div>
-    </main>
-  );
-}
-   
+    function downloadCSV() {
+      const csv = ['Mois,Capital (€)', ...dataPoints.map((v, i) => `${i},${v}`)].join('\\n');
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'projection_PER.csv';
+      link.click();
+    }
+  </script>
+</body>
+</html>
